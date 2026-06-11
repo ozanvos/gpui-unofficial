@@ -510,9 +510,8 @@ impl MetalRenderer {
         full_descriptor.set_height(size.height.0 as u64);
         full_descriptor.set_pixel_format(metal::MTLPixelFormat::BGRA8Unorm);
         full_descriptor.set_storage_mode(metal::MTLStorageMode::Private);
-        full_descriptor.set_usage(
-            metal::MTLTextureUsage::RenderTarget | metal::MTLTextureUsage::ShaderRead,
-        );
+        full_descriptor
+            .set_usage(metal::MTLTextureUsage::RenderTarget | metal::MTLTextureUsage::ShaderRead);
         self.blur_snapshot_texture = Some(self.device.new_texture(&full_descriptor));
 
         let half_descriptor = metal::TextureDescriptor::new();
@@ -520,9 +519,8 @@ impl MetalRenderer {
         half_descriptor.set_height((size.height.0 as u64).max(1) / 2);
         half_descriptor.set_pixel_format(metal::MTLPixelFormat::BGRA8Unorm);
         half_descriptor.set_storage_mode(metal::MTLStorageMode::Private);
-        half_descriptor.set_usage(
-            metal::MTLTextureUsage::RenderTarget | metal::MTLTextureUsage::ShaderRead,
-        );
+        half_descriptor
+            .set_usage(metal::MTLTextureUsage::RenderTarget | metal::MTLTextureUsage::ShaderRead);
         self.blur_half_texture = Some(self.device.new_texture(&half_descriptor));
     }
 
@@ -1421,10 +1419,7 @@ impl MetalRenderer {
         );
         blit.end_encoding();
 
-        let full_size = [
-            viewport_size.width.0 as f32,
-            viewport_size.height.0 as f32,
-        ];
+        let full_size = [viewport_size.width.0 as f32, viewport_size.height.0 as f32];
         let half_size = [
             (viewport_size.width.0 as f32) * 0.5,
             (viewport_size.height.0 as f32) * 0.5,

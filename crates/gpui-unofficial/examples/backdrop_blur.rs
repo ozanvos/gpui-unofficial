@@ -1,8 +1,8 @@
 #![cfg_attr(target_family = "wasm", no_main)]
 
 use gpui::{
-    App, BlurEffect, Bounds, Context, Window, WindowBounds, WindowOptions, div, hsla, linear_color_stop,
-    linear_gradient, prelude::*, px, rgb, rgba, size,
+    App, BlurEffect, Bounds, Context, Window, WindowBounds, WindowOptions, div, hsla,
+    linear_color_stop, linear_gradient, prelude::*, px, rgb, rgba, size,
 };
 use gpui_platform::application;
 
@@ -44,11 +44,9 @@ impl Render for ModalDemo {
                     .child("Busy background content"),
             )
             .children((0..6).map(|row| {
-                div()
-                    .flex()
-                    .flex_row()
-                    .gap_4()
-                    .children((0..5).map(move |col| swatch((row * 5 + col) as f32 * 0.033, row * 5 + col)))
+                div().flex().flex_row().gap_4().children(
+                    (0..5).map(move |col| swatch((row * 5 + col) as f32 * 0.033, row * 5 + col)),
+                )
             }));
 
         let modal = div()

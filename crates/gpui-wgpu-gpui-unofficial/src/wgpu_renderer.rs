@@ -363,9 +363,7 @@ impl WgpuRenderer {
         // can snapshot the framebuffer into an offscreen texture prior to
         // downsampling. If the platform doesn't advertise that usage we fall
         // back to RENDER_ATTACHMENT alone and skip blur draws at render time.
-        let surface_supports_copy_src = surface_caps
-            .usages
-            .contains(wgpu::TextureUsages::COPY_SRC);
+        let surface_supports_copy_src = surface_caps.usages.contains(wgpu::TextureUsages::COPY_SRC);
         let surface_usages = if surface_supports_copy_src {
             wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC
         } else {
@@ -698,9 +696,7 @@ impl WgpuRenderer {
                     ty: wgpu::BindingType::Buffer {
                         ty: wgpu::BufferBindingType::Uniform,
                         has_dynamic_offset: false,
-                        min_binding_size: NonZeroU64::new(
-                            std::mem::size_of::<BlurParams>() as u64
-                        ),
+                        min_binding_size: NonZeroU64::new(std::mem::size_of::<BlurParams>() as u64),
                     },
                     count: None,
                 },
@@ -1084,49 +1080,48 @@ impl WgpuRenderer {
         let blur_downsample = make_blur_io_pipeline("blur_downsample", "fs_blur_downsample");
         let blur_upsample = make_blur_io_pipeline("blur_upsample", "fs_blur_upsample");
 
-        let make_rect_pipeline = |name: &str,
-                                  vs_entry: &str,
-                                  fs_entry: &str,
-                                  data_layout: &wgpu::BindGroupLayout| {
-            let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some(&format!("{name}_pipeline_layout")),
-                bind_group_layouts: &[Some(&layouts.globals), Some(data_layout)],
-                immediate_size: 0,
-            });
-            device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                label: Some(name),
-                layout: Some(&pipeline_layout),
-                vertex: wgpu::VertexState {
-                    module: &shader_module,
-                    entry_point: Some(vs_entry),
-                    buffers: &[],
-                    compilation_options: wgpu::PipelineCompilationOptions::default(),
-                },
-                fragment: Some(wgpu::FragmentState {
-                    module: &shader_module,
-                    entry_point: Some(fs_entry),
-                    targets: &[Some(color_target.clone())],
-                    compilation_options: wgpu::PipelineCompilationOptions::default(),
-                }),
-                primitive: wgpu::PrimitiveState {
-                    topology: wgpu::PrimitiveTopology::TriangleStrip,
-                    strip_index_format: None,
-                    front_face: wgpu::FrontFace::Ccw,
-                    cull_mode: None,
-                    polygon_mode: wgpu::PolygonMode::Fill,
-                    unclipped_depth: false,
-                    conservative: false,
-                },
-                depth_stencil: None,
-                multisample: wgpu::MultisampleState {
-                    count: 1,
-                    mask: !0,
-                    alpha_to_coverage_enabled: false,
-                },
-                multiview_mask: None,
-                cache: None,
-            })
-        };
+        let make_rect_pipeline =
+            |name: &str, vs_entry: &str, fs_entry: &str, data_layout: &wgpu::BindGroupLayout| {
+                let pipeline_layout =
+                    device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                        label: Some(&format!("{name}_pipeline_layout")),
+                        bind_group_layouts: &[Some(&layouts.globals), Some(data_layout)],
+                        immediate_size: 0,
+                    });
+                device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+                    label: Some(name),
+                    layout: Some(&pipeline_layout),
+                    vertex: wgpu::VertexState {
+                        module: &shader_module,
+                        entry_point: Some(vs_entry),
+                        buffers: &[],
+                        compilation_options: wgpu::PipelineCompilationOptions::default(),
+                    },
+                    fragment: Some(wgpu::FragmentState {
+                        module: &shader_module,
+                        entry_point: Some(fs_entry),
+                        targets: &[Some(color_target.clone())],
+                        compilation_options: wgpu::PipelineCompilationOptions::default(),
+                    }),
+                    primitive: wgpu::PrimitiveState {
+                        topology: wgpu::PrimitiveTopology::TriangleStrip,
+                        strip_index_format: None,
+                        front_face: wgpu::FrontFace::Ccw,
+                        cull_mode: None,
+                        polygon_mode: wgpu::PolygonMode::Fill,
+                        unclipped_depth: false,
+                        conservative: false,
+                    },
+                    depth_stencil: None,
+                    multisample: wgpu::MultisampleState {
+                        count: 1,
+                        mask: !0,
+                        alpha_to_coverage_enabled: false,
+                    },
+                    multiview_mask: None,
+                    cache: None,
+                })
+            };
 
         let blur_rect = make_rect_pipeline(
             "blur_rect",
@@ -2551,8 +2546,7 @@ mod tests {
     use super::*;
 
     async fn try_headless_device() -> Option<(wgpu::Device, wgpu::Queue)> {
-        let instance =
-            wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::default(),
