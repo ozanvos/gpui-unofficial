@@ -5,6 +5,7 @@ use crate::{
     StrikethroughStyle, StyleRefinement, TemplateColumnMinSize, TextAlign, TextOverflow,
     TextStyleRefinement, UnderlineStyle, WhiteSpace, px, relative, rems,
 };
+use crate::{BlurEffect, Pixels};
 pub use gpui_macros::{
     border_style_methods, box_shadow_style_methods, cursor_style_methods, margin_style_methods,
     overflow_style_methods, padding_style_methods, position_style_methods,
@@ -739,6 +740,31 @@ pub trait Styled: Sized {
     /// surface — so its fills and borders blend normally again.
     fn glass(mut self, enabled: bool) -> Self {
         self.style().glass_content = Some(enabled);
+        self
+    }
+
+    /// Blurs whatever was painted behind this element's bounds, like CSS
+    /// `backdrop-filter: blur(radius)`. The blurred backdrop is painted before
+    /// the element's shadows and background, so a translucent background acts
+    /// as a tint over it — e.g. a frosted modal:
+    /// `div().backdrop_blur(px(24.)).bg(rgba(0x1e1e2eaa))`.
+    ///
+    /// Each blurred element forces the renderer to break the current render
+    /// pass so the framebuffer can be sampled — prefer a handful per frame.
+    /// Use [`Styled::backdrop_blur_effect`] to also control the Kawase kernel
+    /// levels and tint.
+    fn backdrop_blur(mut self, radius: impl Into<Pixels>) -> Self {
+        self.style().backdrop_blur = Some(BlurEffect {
+            radius: radius.into(),
+            ..Default::default()
+        });
+        self
+    }
+
+    /// Like [`Styled::backdrop_blur`], but with full control over the
+    /// [`BlurEffect`] parameters (radius, kernel levels, tint).
+    fn backdrop_blur_effect(mut self, effect: BlurEffect) -> Self {
+        self.style().backdrop_blur = Some(effect);
         self
     }
 

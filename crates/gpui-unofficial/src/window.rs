@@ -6011,8 +6011,17 @@ pub fn outline(
 }
 
 /// A dual-Kawase backdrop blur with tint, applied to a rounded rectangle.
-/// Passed to [`Window::paint_blur_rect`].
-#[derive(Clone, Copy, Debug)]
+/// Passed to [`Window::paint_blur_rect`] or set on a styled element via
+/// [`crate::Styled::backdrop_blur`].
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
 pub struct BlurEffect {
     /// Gaussian-equivalent blur radius, in window pixels.
     pub radius: Pixels,

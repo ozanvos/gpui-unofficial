@@ -5,7 +5,8 @@ use std::{
 };
 
 use crate::{
-    AbsoluteLength, App, Background, BackgroundTag, BorderStyle, Bounds, ContentMask, Corners,
+    AbsoluteLength, App, Background, BackgroundTag, BlurEffect, BorderStyle, Bounds, ContentMask,
+    Corners,
     CornersRefinement, CursorStyle, DefiniteLength, DevicePixels, Edges, EdgesRefinement, Font,
     FontFallbacks, FontFeatures, FontStyle, FontWeight, GridLocation, Hsla, Length, Pixels, Point,
     PointRefinement, Rgba, SharedString, Size, SizeRefinement, Styled, TextRun, Window, black, phi,
@@ -296,6 +297,14 @@ pub struct Style {
 
     /// The opacity of this element
     pub opacity: Option<f32>,
+
+    /// A backdrop blur applied behind this element's bounds, sampling and
+    /// blurring whatever was painted underneath it (like CSS
+    /// `backdrop-filter: blur(..)`). Painted before the element's shadows and
+    /// background, so a translucent background tints the blurred backdrop.
+    /// Set via [`crate::Styled::backdrop_blur`]. Each blurred element breaks
+    /// the render pass — prefer a handful per frame.
+    pub backdrop_blur: Option<BlurEffect>,
 
     /// Whether this element's children are painted as "glass content": their
     /// fills only blend RGB and preserve the destination alpha, so rounded
@@ -676,6 +685,10 @@ impl Style {
             .to_pixels(rem_size)
             .clamp_radii_for_quad_size(bounds.size);
 
+        if let Some(backdrop_blur) = self.backdrop_blur {
+            window.paint_blur_rect(bounds, corner_radii, backdrop_blur);
+        }
+
         window.paint_shadows(bounds, corner_radii, &self.box_shadow);
 
         let background_color = self.background.as_ref().and_then(Fill::color);
@@ -775,6 +788,7 @@ impl Default for Style {
             text: TextStyleRefinement::default(),
             mouse_cursor: None,
             opacity: None,
+            backdrop_blur: None,
             glass_content: None,
             grid_rows: None,
             grid_cols: None,

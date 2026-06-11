@@ -1,0 +1,34 @@
+# Dev-only: route the unofficial crates to their local copies so that builds
+# rooted inside this repo (each crate is its own workspace) compile against
+# the patched source, e.g.:
+#   cd crates/gpui-unofficial && cargo run --example backdrop_blur
+# Consumers pulling these crates via git [patch.crates-io] never read this
+# file — cargo configs only load from the consuming build's own directory
+# tree.
+
+[patch.crates-io]
+collections-gpui-unofficial = { path = "crates/collections-gpui-unofficial" }
+derive-refineable-gpui-unofficial = { path = "crates/derive-refineable-gpui-unofficial" }
+gpui-linux-gpui-unofficial = { path = "crates/gpui-linux-gpui-unofficial" }
+gpui-macos-gpui-unofficial = { path = "crates/gpui-macos-gpui-unofficial" }
+gpui-macros-gpui-unofficial = { path = "crates/gpui-macros-gpui-unofficial" }
+gpui-platform-gpui-unofficial = { path = "crates/gpui-platform-gpui-unofficial" }
+gpui-shared-string-gpui-unofficial = { path = "crates/gpui-shared-string-gpui-unofficial" }
+gpui-unofficial = { path = "crates/gpui-unofficial" }
+gpui-util-gpui-unofficial = { path = "crates/gpui-util-gpui-unofficial" }
+gpui-web-gpui-unofficial = { path = "crates/gpui-web-gpui-unofficial" }
+gpui-wgpu-gpui-unofficial = { path = "crates/gpui-wgpu-gpui-unofficial" }
+gpui-windows-gpui-unofficial = { path = "crates/gpui-windows-gpui-unofficial" }
+http-client-gpui-unofficial = { path = "crates/http-client-gpui-unofficial" }
+http-client-tls-gpui-unofficial = { path = "crates/http-client-tls-gpui-unofficial" }
+media-gpui-unofficial = { path = "crates/media-gpui-unofficial" }
+perf-gpui-unofficial = { path = "crates/perf-gpui-unofficial" }
+refineable-gpui-unofficial = { path = "crates/refineable-gpui-unofficial" }
+reqwest-client-gpui-unofficial = { path = "crates/reqwest-client-gpui-unofficial" }
+scheduler-gpui-unofficial = { path = "crates/scheduler-gpui-unofficial" }
+sum-tree-gpui-unofficial = { path = "crates/sum-tree-gpui-unofficial" }
+util-gpui-unofficial = { path = "crates/util-gpui-unofficial" }
+util-macros-gpui-unofficial = { path = "crates/util-macros-gpui-unofficial" }
+zlog-gpui-unofficial = { path = "crates/zlog-gpui-unofficial" }
+ztracing-gpui-unofficial = { path = "crates/ztracing-gpui-unofficial" }
+ztracing-macro-gpui-unofficial = { path = "crates/ztracing-macro-gpui-unofficial" }

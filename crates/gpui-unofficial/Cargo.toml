@@ -244,6 +244,10 @@ name = "window_glass"
 path = "examples/window_glass.rs"
 
 [[example]]
+name = "backdrop_blur"
+path = "examples/backdrop_blur.rs"
+
+[[example]]
 name = "grid_layout"
 path = "examples/grid_layout.rs"
 
