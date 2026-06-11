@@ -949,8 +949,22 @@ impl MetalRenderer {
                         true
                     } else {
                         command_encoder.end_encoding();
-                        let did_snapshot = self
-                            .snapshot_and_blur_frame(texture, viewport_size, command_buffer);
+                        // A single blurred snapshot is shared by every rect in
+                        // the batch, so blur the frame by the widest radius any
+                        // of them requests.
+                        let blur_radius = rects
+                            .iter()
+                            .map(|r| r.blur_radius.0)
+                            .fold(0.0_f32, f32::max);
+                        let kernel_levels =
+                            rects.iter().map(|r| r.kernel_levels).max().unwrap_or(1);
+                        let did_snapshot = self.snapshot_and_blur_frame(
+                            texture,
+                            viewport_size,
+                            command_buffer,
+                            blur_radius,
+                            kernel_levels,
+                        );
                         command_encoder = new_command_encoder_for_texture(
                             command_buffer,
                             texture,
@@ -978,8 +992,19 @@ impl MetalRenderer {
                         true
                     } else {
                         command_encoder.end_encoding();
-                        let did_snapshot = self
-                            .snapshot_and_blur_frame(texture, viewport_size, command_buffer);
+                        let blur_radius = rects
+                            .iter()
+                            .map(|r| r.blur_radius.0)
+                            .fold(0.0_f32, f32::max);
+                        let kernel_levels =
+                            rects.iter().map(|r| r.kernel_levels).max().unwrap_or(1);
+                        let did_snapshot = self.snapshot_and_blur_frame(
+                            texture,
+                            viewport_size,
+                            command_buffer,
+                            blur_radius,
+                            kernel_levels,
+                        );
                         command_encoder = new_command_encoder_for_texture(
                             command_buffer,
                             texture,
@@ -1350,11 +1375,23 @@ impl MetalRenderer {
         true
     }
 
+    /// Blit the current framebuffer into `blur_snapshot_texture` and blur it in
+    /// place with a dual-Kawase pyramid. `blur_radius` is in device pixels and
+    /// `kernel_levels` is the number of down/up cycles to run.
+    ///
+    /// One down+up cycle at offset `o` blurs by roughly `o` pixels; to honor a
+    /// large `blur_radius` without the sparse-tap aliasing a single wide Kawase
+    /// step would cause, the radius is spread across `kernel_levels` cycles
+    /// (each cycle re-reads the previous blurred result), with a per-step cap.
+    /// PR 54512 left these inputs unwired (fixed `offset_multiplier: 1.0`, i.e.
+    /// a sub-pixel and effectively invisible blur); this consumes them.
     fn snapshot_and_blur_frame(
         &self,
         texture: &metal::TextureRef,
         viewport_size: Size<DevicePixels>,
         command_buffer: &metal::CommandBufferRef,
+        blur_radius: f32,
+        kernel_levels: u32,
     ) -> bool {
         let (Some(snapshot), Some(half)) = (
             self.blur_snapshot_texture.as_ref(),
@@ -1384,7 +1421,6 @@ impl MetalRenderer {
         );
         blit.end_encoding();
 
-        // Downsample snapshot (full) -> half.
         let full_size = [
             viewport_size.width.0 as f32,
             viewport_size.height.0 as f32,
@@ -1394,28 +1430,42 @@ impl MetalRenderer {
             (viewport_size.height.0 as f32) * 0.5,
         ];
 
-        self.run_blur_pass(
-            command_buffer,
-            snapshot,
-            half,
-            &self.blur_downsample_pipeline_state,
-            BlurParams {
-                viewport_size: full_size,
-                offset_multiplier: 1.0,
-                _pad: 0.0,
-            },
-        );
-        self.run_blur_pass(
-            command_buffer,
-            half,
-            snapshot,
-            &self.blur_upsample_pipeline_state,
-            BlurParams {
-                viewport_size: half_size,
-                offset_multiplier: 1.0,
-                _pad: 0.0,
-            },
-        );
+        // A radius below ~half a pixel is imperceptible; leave the sharp copy so
+        // the composite is a cheap passthrough.
+        let levels = kernel_levels.clamp(1, 5);
+        let radius = blur_radius.clamp(0.0, 200.0);
+        if radius < 0.5 {
+            return true;
+        }
+        // Each step reaches ~`offset` device pixels; cap it so wide radii add
+        // passes rather than ever-sparser taps.
+        let offset = (radius / levels as f32).clamp(1.0, 16.0);
+
+        for _ in 0..levels {
+            // Downsample snapshot (full) -> half, then upsample half -> snapshot.
+            self.run_blur_pass(
+                command_buffer,
+                snapshot,
+                half,
+                &self.blur_downsample_pipeline_state,
+                BlurParams {
+                    viewport_size: full_size,
+                    offset_multiplier: offset,
+                    _pad: 0.0,
+                },
+            );
+            self.run_blur_pass(
+                command_buffer,
+                half,
+                snapshot,
+                &self.blur_upsample_pipeline_state,
+                BlurParams {
+                    viewport_size: half_size,
+                    offset_multiplier: offset,
+                    _pad: 0.0,
+                },
+            );
+        }
         true
     }
 
