@@ -240,6 +240,10 @@ name = "window_shadow"
 path = "examples/window_shadow.rs"
 
 [[example]]
+name = "window_glass"
+path = "examples/window_glass.rs"
+
+[[example]]
 name = "grid_layout"
 path = "examples/grid_layout.rs"
 
